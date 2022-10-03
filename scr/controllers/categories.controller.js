@@ -16,11 +16,11 @@ export async function postCategories(req, res) {
 
     if (!name) { return res.sendStatus(400) };
 
-    const exist = await connection.query('SELECT categories.name FROM categories WHERE name = ($1)', [name]);
-    if (exist) { return res.sendStatus(409) };
-
     try {
-        await connection.query('INSERT INTO categories (name) VALUES ($1);', [name]);
+        const exist = await connection.query('SELECT categories.name FROM categories WHERE name = ($1)', [name]);
+        if (exist.rows.length !== 0) { return res.sendStatus(409) };
+
+        const insert = await connection.query('INSERT INTO categories (name) VALUES ($1);', [name]);
         return res.sendStatus(201);
     } catch (error) {
         console.log(error);
