@@ -3,18 +3,34 @@ import { postGamesSchema } from "../schemas/schema.js";
 
 // listar jogos
 export async function getGames(req, res) {
-    const { name } = req.query;
+    const { name, offset, limit, order, desc } = req.query;
 
     try {
-
-        if (name) {
-            const filteredGames = await connection.query('SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id WHERE games.name LIKE ($1)', [name])
+        if (name && offset && limit) {
+            const filteredGames = await connection.query(`SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id WHERE games.name LIKE ($1) LIMIT ${limit} OFFSET ${offset};`, [`%${name}%`])
             res.send(filteredGames.rows);
-        }
-
-        const allGames = await connection.query('SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id;')
-        res.send(allGames.rows);
-
+        } else if (offset && limit) {
+            const limitGames = await connection.query(`SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id LIMIT ${limit} OFFSET ${offset}; `);
+            return res.send(limitGames.rows);
+        } else if (name) {
+            const nameGames = await connection.query('SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id WHERE games.name LIKE ($1);', [`%${name}%`])
+            res.send(nameGames.rows);
+        } else if (offset) {
+            const offsetGames = await connection.query(`SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id OFFSET ${offset}; `);
+            return res.send(offsetGames.rows);
+        } else if (limit) {
+            const limitGames = await connection.query(`SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id LIMIT ${limit}; `);
+            return res.send(limitGames.rows);
+        } else if (desc && order) {
+            const descGames = await connection.query(`SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id ORDER BY ${order} ASC;`)
+            return res.send(descGames.rows);
+        } else if (order) {
+            const ascGames = await connection.query(`SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id ORDER BY ${order} DESC;`)
+            return res.send(ascGames.rows);
+        } else {
+            const allGames = await connection.query('SELECT games.*, categories.id AS "categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games. "categoryId" = categories.id;')
+            res.send(allGames.rows);
+        };
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);

@@ -3,7 +3,7 @@ import connection from "../database.js";
 
 // listar aluguéis
 export async function getRentals(req, res) {
-    const { customerId, gameId } = req.query;
+    const { customerId, gameId, offset, limit, order, desc, status } = req.query;
 
     try {
         if (customerId) {
@@ -46,6 +46,150 @@ export async function getRentals(req, res) {
                 };
             };
             return res.send(listRentals.rows);
+        } else if (offset && limit) {
+            const listRentals = await connection.query(`SELECT * FROM rentals LIMIT ${limit} OFFSET ${offset};`);
+
+            for (let i = 0; i < listRentals.rows.length; i++) {
+                const customer = await connection.query(
+                    "SELECT id, name FROM customers WHERE id = $1",
+                    [listRentals.rows[i].customerId]
+                );
+
+                const game = await connection.query(
+                    `SELECT games.id, games.name, games."categoryId", categories.name AS "categoryName"games JOIN categories ON games."categoryId" = categories.id WHERE games.id = $1;`,
+                    [listRentals.rows[i].gameId]
+                );
+                listRentals.rows[i] = {
+                    ...listRentals.rows[i],
+                    customer: customer.rows[0],
+                    game: game.rows[0],
+                };
+            };
+            return res.send(listRentals.rows);
+        } else if (offset) {
+            const listRentals = await connection.query(`SELECT * FROM rentals OFFSET ${offset};`);
+
+            for (let i = 0; i < listRentals.rows.length; i++) {
+                const customer = await connection.query(
+                    "SELECT id, name FROM customers WHERE id = $1",
+                    [listRentals.rows[i].customerId]
+                );
+
+                const game = await connection.query(
+                    `SELECT games.id, games.name, games."categoryId", categories.name AS "categoryName"games JOIN categories ON games."categoryId" = categories.id WHERE games.id = $1;`,
+                    [listRentals.rows[i].gameId]
+                );
+                listRentals.rows[i] = {
+                    ...listRentals.rows[i],
+                    customer: customer.rows[0],
+                    game: game.rows[0],
+                };
+            };
+            return res.send(listRentals.rows);
+        } else if (limit) {
+            const listRentals = await connection.query(`SELECT * FROM rentals LIMIT ${limit};`);
+
+            for (let i = 0; i < listRentals.rows.length; i++) {
+                const customer = await connection.query(
+                    "SELECT id, name FROM customers WHERE id = $1",
+                    [listRentals.rows[i].customerId]
+                );
+
+                const game = await connection.query(
+                    `SELECT games.id, games.name, games."categoryId", categories.name AS "categoryName"games JOIN categories ON games."categoryId" = categories.id WHERE games.id = $1;`,
+                    [listRentals.rows[i].gameId]
+                );
+                listRentals.rows[i] = {
+                    ...listRentals.rows[i],
+                    customer: customer.rows[0],
+                    game: game.rows[0],
+                };
+            };
+            return res.send(listRentals.rows);
+        } else if (desc && order) {
+            const listRentals = await connection.query(`SELECT * FROM rentals ORDER BY ${order} DESC;`);
+
+            for (let i = 0; i < listRentals.rows.length; i++) {
+                const customer = await connection.query(
+                    "SELECT id, name FROM customers WHERE id = $1",
+                    [listRentals.rows[i].customerId]
+                );
+
+                const game = await connection.query(
+                    `SELECT games.id, games.name, games."categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id WHERE games.id = $1;`,
+                    [listRentals.rows[i].gameId]
+                );
+
+                listRentals.rows[i] = {
+                    ...listRentals.rows[i],
+                    customer: customer.rows[0],
+                    game: game.rows[0],
+                };
+            };
+            return res.send(listRentals.rows);
+        } else if (order) {
+            const listRentals = await connection.query(`SELECT * FROM rentals ORDER BY ${order};`);
+
+            for (let i = 0; i < listRentals.rows.length; i++) {
+                const customer = await connection.query(
+                    "SELECT id, name FROM customers WHERE id = $1",
+                    [listRentals.rows[i].customerId]
+                );
+
+                const game = await connection.query(
+                    `SELECT games.id, games.name, games."categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id WHERE games.id = $1;`,
+                    [listRentals.rows[i].gameId]
+                );
+
+                listRentals.rows[i] = {
+                    ...listRentals.rows[i],
+                    customer: customer.rows[0],
+                    game: game.rows[0],
+                };
+            };
+            return res.send(listRentals.rows);
+        } else if (status === "open") {
+            const listRentals = await connection.query(`SELECT * FROM rentals WHERE "returnDate IS NULL;`);
+
+            for (let i = 0; i < listRentals.rows.length; i++) {
+                const customer = await connection.query(
+                    "SELECT id, name FROM customers WHERE id = $1",
+                    [listRentals.rows[i].customerId]
+                );
+
+                const game = await connection.query(
+                    `SELECT games.id, games.name, games."categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id WHERE games.id = $1;`,
+                    [listRentals.rows[i].gameId]
+                );
+
+                listRentals.rows[i] = {
+                    ...listRentals.rows[i],
+                    customer: customer.rows[0],
+                    game: game.rows[0],
+                };
+            };
+            return res.send(listRentals.rows);
+        } else if (status === "closed") {
+            const listRentals = await connection.query(`SELECT * FROM rentals WHERE "returnDate IS NOT NULL;`);
+
+            for (let i = 0; i < listRentals.rows.length; i++) {
+                const customer = await connection.query(
+                    "SELECT id, name FROM customers WHERE id = $1",
+                    [listRentals.rows[i].customerId]
+                );
+
+                const game = await connection.query(
+                    `SELECT games.id, games.name, games."categoryId", categories.name AS "categoryName" FROM games JOIN categories ON games."categoryId" = categories.id WHERE games.id = $1;`,
+                    [listRentals.rows[i].gameId]
+                );
+
+                listRentals.rows[i] = {
+                    ...listRentals.rows[i],
+                    customer: customer.rows[0],
+                    game: game.rows[0],
+                };
+            };
+            return res.send(listRentals.rows);
         } else {
             const listRentals = await connection.query(`SELECT * FROM rentals;`);
 
@@ -67,7 +211,7 @@ export async function getRentals(req, res) {
                 };
             };
             return res.send(listRentals.rows);
-        }
+        };
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
@@ -119,9 +263,10 @@ export async function returnRentals(req, res) {
 
     try {
         const rent = await connection.query('SELECT * FROM rentals WHERE id = ($1)', [id]);
+        console.log(rent.rows)
 
-        if (rent.rows.length === 0) return res.sendStatus(400);
-        if (rent.rows.returnDate !== null) return res.sendStatus(400);
+        if (rent.rows.length === 0) { return res.sendStatus(400) }
+        if (rent.rows[0].returnDate !== null) { return res.sendStatus(400) };
 
         const rentDate = new Date(rent.rows[0].rentDate);
         const returnDate = new Date(dayjs().format("YYYY-MM-DD"));
@@ -134,9 +279,9 @@ export async function returnRentals(req, res) {
             penalty =
                 (diffDays - rent.rows[0].daysRented) *
                 (rent.rows[0].originalPrice / rent.rows[0].daysRented);
-        }
+        };
 
-        await connection.query('UPDATE rentals SET "returnDate" = $1, "delayFee" = $2, WHERE id = $3', [returnDate, penalty, id])
+        await connection.query('UPDATE rentals SET "returnDate" = $1, "delayFee" = $2 WHERE id = $3', [returnDate, penalty, id])
         res.sendStatus(200);
     } catch (error) {
         console.log(error);
@@ -152,7 +297,7 @@ export async function deleteRentals(req, res) {
         const rental = await connection.query('SELECT * FROM rentals WHERE id = ($1)', [id]);
 
         if (rental.rows.length === 0) return res.sendStatus(404);
-        if (rental.rows[0].returnDate === null) return res.sendStatus(400);
+        if (rental.rows.returnDate === null) return res.sendStatus(400);
 
         await connection.query('DELETE from rentals WHERE id = ($1)', [id]);
         res.sendStatus(200);

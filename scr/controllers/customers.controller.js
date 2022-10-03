@@ -3,19 +3,34 @@ import { customerSchema } from "../schemas/schema.js";
 
 // listar clientes
 export async function getCustomers(req, res) {
-    const { cpf } = req.query;
-    console.log(cpf)
+    const { cpf, offset, limit, order, desc } = req.query;
 
     try {
-
         if (cpf) {
-            const filteredCustomers = await connection.query("SELECT * FROM customers WHERE cpf LIKE ($1)", [cpf]);
-            console.log(filteredCustomers.rows);
-            return res.send(filteredCustomers.rows)
-        }
-
-        const allCustomers = await connection.query('SELECT * FROM customers');
-        res.send(allCustomers.rows);
+            const cpfCustomers = await connection.query("SELECT * FROM customers WHERE cpf LIKE ($1)", [`%${cpf}%`]);
+            return res.send(cpfCustomers.rows)
+        } else if (offset) {
+            const offsetCustomers = await connection.query(`SELECT * FROM customers OFFSET ${offset} `);
+            return res.send(offsetCustomers.rows);
+        } else if (limit) {
+            const limitCustomers = await connection.query(`SELECT * FROM customers LIMIT ${limit} `);
+            return res.send(limitCustomers.rows);
+        } else if (offset && limit) {
+            const limitCustomers = await connection.query(`SELECT * FROM customers LIMIT ${limit} OFFSET ${offset} `);
+            return res.send(limitCustomers.rows);
+        } else if (cpf && offset && limit) {
+            const filteredCustomers = await connection.query(`SELECT * FROM customers LIMIT ${limit} OFFSET ${offset} WHERE cpf LIKE ($1)`, [`%${cpf}%`]);
+            return res.send(filteredCustomers.rows);
+        } else if (desc && order) {
+            const descCustomers = await connection.query(`SELECT * FROM customers ORDER BY ${order} DESC`);
+            return res.send(descCustomers.rows);
+        } else if (order) {
+            const ascCustomers = await connection.query(`SELECT * FROM customers ORDER BY ${order}`);
+            return res.send(ascCustomers.rows);
+        } else {
+            const allCustomers = await connection.query('SELECT * FROM customers');
+            res.send(allCustomers.rows);
+        };
     } catch (error) {
         console.log(error);
         return res.sendStatus(500);
