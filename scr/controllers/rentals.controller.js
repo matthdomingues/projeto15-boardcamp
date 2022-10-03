@@ -149,7 +149,7 @@ export async function getRentals(req, res) {
             };
             return res.send(listRentals.rows);
         } else if (status === "open") {
-            const listRentals = await connection.query(`SELECT * FROM rentals WHERE "returnDate IS NULL;`);
+            const listRentals = await connection.query(`SELECT * FROM rentals WHERE "returnDate" IS NULL;`);
 
             for (let i = 0; i < listRentals.rows.length; i++) {
                 const customer = await connection.query(
@@ -170,7 +170,7 @@ export async function getRentals(req, res) {
             };
             return res.send(listRentals.rows);
         } else if (status === "closed") {
-            const listRentals = await connection.query(`SELECT * FROM rentals WHERE "returnDate IS NOT NULL;`);
+            const listRentals = await connection.query(`SELECT * FROM rentals WHERE "returnDate" IS NOT NULL;`);
 
             for (let i = 0; i < listRentals.rows.length; i++) {
                 const customer = await connection.query(
